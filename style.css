@@ -21,4 +21,8 @@ body {
   justify-content: center;
   cursor: pointer;
   user-select: none;
+  transition: transform 0.3s ease, background 0.3s ease, opacity 0.3s ease;
+}
+.fade {
+  opacity: 0;
 }

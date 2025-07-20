@@ -25,6 +25,7 @@ function createBoard() {
 }
 
 let dragged = null;
+let replaced = null;
 
 function enableDrag() {
   grid.forEach(cell => {
@@ -39,23 +40,34 @@ function dragStart(e) {
 }
 
 function dragDrop(e) {
+  replaced = this;
+
   const fromId = parseInt(dragged.getAttribute("data-id"));
-  const toId = parseInt(this.getAttribute("data-id"));
+  const toId = parseInt(replaced.getAttribute("data-id"));
 
   const validMoves = [fromId - 1, fromId + 1, fromId - width, fromId + width];
   if (!validMoves.includes(toId)) return;
 
   const fromIcon = dragged.textContent;
-  const toIcon = this.textContent;
+  const toIcon = replaced.textContent;
 
-  // Swap
   dragged.textContent = toIcon;
-  this.textContent = fromIcon;
+  replaced.textContent = fromIcon;
 
-  checkMatches();
+  setTimeout(() => {
+    if (checkMatches(true)) {
+      checkMatches();
+    } else {
+      // Відмінити хід, якщо немає збігу
+      dragged.textContent = fromIcon;
+      replaced.textContent = toIcon;
+    }
+  }, 100);
 }
 
-function checkMatches() {
+function checkMatches(simulateOnly = false) {
+  let matched = false;
+
   for (let i = 0; i < width * width; i++) {
     let row = Math.floor(i / width);
     if (i % width < width - 2) {
@@ -65,9 +77,11 @@ function checkMatches() {
         grid[i + 1].textContent === icon &&
         grid[i + 2].textContent === icon
       ) {
-        grid[i].textContent = "";
-        grid[i + 1].textContent = "";
-        grid[i + 2].textContent = "";
+        if (simulateOnly) return true;
+        grid[i].classList.add("fade");
+        grid[i + 1].classList.add("fade");
+        grid[i + 2].classList.add("fade");
+        matched = true;
         score += 3;
       }
     }
@@ -78,21 +92,38 @@ function checkMatches() {
         grid[i + width].textContent === icon &&
         grid[i + 2 * width].textContent === icon
       ) {
-        grid[i].textContent = "";
-        grid[i + width].textContent = "";
-        grid[i + 2 * width].textContent = "";
+        if (simulateOnly) return true;
+        grid[i].classList.add("fade");
+        grid[i + width].classList.add("fade");
+        grid[i + 2 * width].classList.add("fade");
+        matched = true;
         score += 3;
       }
     }
   }
-  scoreDisplay.textContent = "Очки: " + score;
+
+  if (!simulateOnly && matched) {
+    scoreDisplay.textContent = "Очки: " + score;
+    setTimeout(removeMatches, 300);
+  }
+
+  return matched;
+}
+
+function removeMatches() {
+  for (let i = 0; i < width * width; i++) {
+    if (grid[i].classList.contains("fade")) {
+      grid[i].classList.remove("fade");
+      grid[i].textContent = "";
+    }
+  }
   setTimeout(dropCells, 200);
 }
 
 function dropCells() {
   for (let i = width * width - 1; i >= 0; i--) {
     if (grid[i].textContent === "") {
-      if (i - width >= 0) {
+      if (i - width >= 0 && grid[i - width].textContent !== "") {
         grid[i].textContent = grid[i - width].textContent;
         grid[i - width].textContent = "";
       } else {
@@ -100,6 +131,7 @@ function dropCells() {
       }
     }
   }
+  setTimeout(checkMatches, 200);
 }
 
 createBoard();
