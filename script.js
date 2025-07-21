@@ -58,7 +58,6 @@ function dragDrop(e) {
     if (checkMatches(true)) {
       checkMatches();
     } else {
-      // Відмінити хід, якщо немає збігу
       dragged.textContent = fromIcon;
       replaced.textContent = toIcon;
     }
@@ -131,7 +130,26 @@ function dropCells() {
       }
     }
   }
-  setTimeout(checkMatches, 200);
+  setTimeout(() => {
+    if (!checkMatches(true)) {
+      updateLeaderboard();
+    } else {
+      checkMatches();
+    }
+  }, 200);
+}
+
+// Leaderboard
+function updateLeaderboard() {
+  const leaderboardEl = document.getElementById("leaderboard");
+  const scores = JSON.parse(localStorage.getItem("topScores") || "[]");
+
+  scores.push(score);
+  scores.sort((a, b) => b - a);
+  const top = scores.slice(0, 5);
+  localStorage.setItem("topScores", JSON.stringify(top));
+
+  leaderboardEl.innerHTML = "<b>🏆 Рейтинг (топ-5):</b><br>" + top.map((s, i) => `${i + 1}. ${s} очок`).join("<br>");
 }
 
 createBoard();
