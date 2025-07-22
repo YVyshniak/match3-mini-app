@@ -103,7 +103,7 @@ function checkMatches(simulateOnly = false) {
 
   if (!simulateOnly && matched) {
     scoreDisplay.textContent = "Очки: " + score;
-    setTimeout(removeMatches, 300);
+    setTimeout(removeMatches, 400);
   }
 
   return matched;
